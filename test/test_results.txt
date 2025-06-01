@@ -1,0 +1,26 @@
+Driver initialized
+
+=== Testing Viking Extension ===
+
+--- Testing rusage() ---
+SUCCESS: rusage() returned array of 14 elements
+User time: 3 seconds, 7 microseconds
+System time: 30162944 seconds, 0 microseconds
+Max RSS: 2807
+Page faults (no I/O): 0
+Page faults (I/O): 0
+Voluntary context switches: 20
+Involuntary context switches: 179
+
+--- Testing argon2_hash() and argon2_verify() ---
+Calling argon2_hash with password: test_password123
+SUCCESS: argon2_hash() returned hash: $argon2id$v=19$m=65536,t=3,p=1$m6K8ryHGiWqXKDWSJohQvw$50FEEoaLK+I7My7waSb425p/pdm38CHw87Jnc1ol8I0
+SUCCESS: argon2_verify() correctly verified password
+SUCCESS: argon2_verify() correctly rejected wrong password
+SUCCESS: argon2_hash() with custom params returned hash: $argon2id$v=19$m=64,t=2,p=1$xt7/igj3Yyn3ucaJEwBoWw$5CgBYOFK1ltzzJCNdNczFQFjFcBXoSu0OZB+gGqaZhI
+SUCCESS: argon2_verify() verified custom param hash
+SUCCESS: Different parameters produced different hashes
+
+--- Testing http_request() ---
+SUCCESS: http_request() GET returned response
+  Status: 200

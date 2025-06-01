@@ -1,0 +1,27 @@
+telnet_port	= 6047;
+binary_port	= 6048;
+directory	= "test";
+driver_object	= "/obj/driver";
+auto_object	= "/obj/auto";
+create		= "create";
+
+users		= 10;
+editors		= 10;
+ed_tmpfile	= "../tmp/ed";
+swap_file	= "../tmp/swap";
+swap_size	= 1024;
+sector_size	= 512;
+swap_fragment	= 4096;
+static_chunk	= 64512;
+dynamic_chunk	= 261120;
+dump_file	= "../tmp/test.snapshot";
+dump_interval	= 3600;
+
+typechecking	= 2;
+include_file	= "/include/std.h";
+include_dirs	= ({ "/include" });
+array_size	= 16384;
+objects		= 262144;
+call_outs	= 16384;
+
+modules		= ([ "../viking_ext.dylib" : "" ]);

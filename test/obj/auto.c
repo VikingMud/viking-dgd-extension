@@ -1,0 +1,1 @@
+/* Empty auto object - required by DGD but can be empty */

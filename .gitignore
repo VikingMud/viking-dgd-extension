@@ -1,0 +1,22 @@
+# Compiled object files
+*.o
+*.so
+*.dylib
+*.dll
+
+# Test temporary directory
+test/tmp/
+
+# Editor temporary files
+*~
+*.swp
+*.swo
+.DS_Store
+
+# DGD state files
+*.snapshot
+*.swap
+
+# DGD auto-generated include files (except std.h)
+test/include/*.h
+!test/include/std.h
