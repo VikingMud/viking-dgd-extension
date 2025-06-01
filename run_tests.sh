@@ -42,7 +42,7 @@ $DGD_BIN test.dgd &
 DGD_PID=$!
 
 # Give DGD time to start and run tests
-sleep 3
+sleep 8
 
 # Kill DGD
 kill $DGD_PID 2>/dev/null

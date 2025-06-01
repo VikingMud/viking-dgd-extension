@@ -16,3 +16,24 @@ void initialize() {
 object call_object(string path) {
     return compile_object(path);
 }
+
+/* Called when compilation errors occur */
+void compile_error(string file, int line, string err) {
+    write_file("/test_results.txt", "Compile error in " + file + ":" + line + " - " + err + "\n");
+}
+
+/* Called when runtime errors occur */
+void runtime_error(string err, int caught, mixed *trace) {
+    write_file("/test_results.txt", "Runtime error: " + err + "\n");
+    if (!caught) {
+        int i;
+        for (i = 0; i < sizeof(trace); i++) {
+            write_file("/test_results.txt", "  " + trace[i][0] + ":" + trace[i][1] + " in " + trace[i][2] + "\n");
+        }
+    }
+}
+
+/* Called when DGD receives an interrupt signal */
+void interrupt() {
+    /* Clean shutdown - tests are already complete */
+}

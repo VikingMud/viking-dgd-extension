@@ -4,23 +4,51 @@ Driver initialized
 
 --- Testing rusage() ---
 SUCCESS: rusage() returned array of 14 elements
-User time: 3 seconds, 7 microseconds
-System time: 30162944 seconds, 0 microseconds
-Max RSS: 2807
+User time: 3 seconds, 5 microseconds
+System time: 30195712 seconds, 0 microseconds
+Max RSS: 2809
 Page faults (no I/O): 0
 Page faults (I/O): 0
-Voluntary context switches: 20
-Involuntary context switches: 179
+Voluntary context switches: 14
+Involuntary context switches: 55
 
 --- Testing argon2_hash() and argon2_verify() ---
 Calling argon2_hash with password: test_password123
-SUCCESS: argon2_hash() returned hash: $argon2id$v=19$m=65536,t=3,p=1$m6K8ryHGiWqXKDWSJohQvw$50FEEoaLK+I7My7waSb425p/pdm38CHw87Jnc1ol8I0
+SUCCESS: argon2_hash() returned hash: $argon2id$v=19$m=65536,t=3,p=1$RHe7GMN0jPWYvGAqhCFTuw$d+v/cDtGF9jtzeHlKYrqymTqWDsYxWwX+2+4t3Ma5i4
 SUCCESS: argon2_verify() correctly verified password
 SUCCESS: argon2_verify() correctly rejected wrong password
-SUCCESS: argon2_hash() with custom params returned hash: $argon2id$v=19$m=64,t=2,p=1$xt7/igj3Yyn3ucaJEwBoWw$5CgBYOFK1ltzzJCNdNczFQFjFcBXoSu0OZB+gGqaZhI
+SUCCESS: argon2_hash() with custom params returned hash: $argon2id$v=19$m=64,t=2,p=1$rAVTQ6BwUdOJ4GTMdD+AqQ$YLWlNYUDw43b2VZg/6tDaOmSGVG5e63fiIBBT2cN2/g
 SUCCESS: argon2_verify() verified custom param hash
 SUCCESS: Different parameters produced different hashes
 
 --- Testing http_request() ---
-SUCCESS: http_request() GET returned response
+
+Test 1: GET request
   Status: 200
+  ✓ Got 200 OK
+  Body length: 219 bytes
+  ✓ Body contains expected JSON
+
+Test 2: POST request with JSON
+  Status: 200
+  ✓ Got 200 OK
+  ✓ Posted data found in response body
+
+Test 3: Custom headers
+  ✓ Got response with custom headers
+  ✓ Custom header reflected in response body
+
+Test 4: Other HTTP methods
+  ✓ DELETE request successful
+  ✓ PUT request successful
+  ✓ PUT data found in response body
+
+Test 5: Error handling
+  ✓ 404 error handled correctly
+
+--- HTTP Test Summary ---
+Passed: 10 tests
+Failed: 0 tests
+Total: 10 tests
+
+=== All tests completed ===
