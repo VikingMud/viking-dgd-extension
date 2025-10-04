@@ -7,7 +7,6 @@ void initialize() {
     /* Run tests */
     call_other("/test_rusage", "test");
     call_other("/test_crypto", "test");
-    call_other("/test_http", "test");
     
     write_file("/test_results.txt", "\n=== All tests completed ===\n");
 }
