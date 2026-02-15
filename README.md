@@ -2,125 +2,159 @@
 
 A DGD extension module that provides additional kernel functions (kfuns) for Viking MUD.
 
-## Features
+## Kfuns
 
-This extension provides the following kfuns:
-
-- **`rusage()`** - Returns system resource usage information as a 14-element array
-- **`argon2_hash(string password, int ops_limit, int mem_limit)`** - Hash passwords using Argon2id
-- **`argon2_verify(string password, string hash)`** - Verify passwords against Argon2id hashes
-- **`http_request(string url, string method, mapping headers, string body)`** - Make HTTP requests
+| Kfun | Prototype | Description |
+|------|-----------|-------------|
+| `rusage()` | `int*` (14-element array) | System resource usage via `getrusage()` |
+| `argon2_hash(string, int, int)` | returns `string` | Argon2id password hashing |
+| `argon2_verify(string, string)` | returns `int` | Argon2id password verification |
 
 ## Requirements
 
-- DGD (Dworkin's Game Driver)
-- libsodium (for Argon2 password hashing)
-- libcurl (for HTTP requests)
+- [DGD](https://github.com/dworkin/dgd) (Dworkin's Game Driver)
+- libsodium (`libsodium-dev` on Debian/Ubuntu, `libsodium` on macOS via Homebrew)
 - C compiler with C99 support
 
-## Building
+## Viking MUD Installation
 
-1. Install dependencies:
-   ```bash
-   # macOS
-   brew install libsodium curl
+### 1. Build DGD with Viking flags
 
-   # Ubuntu/Debian
-   sudo apt-get install libsodium-dev libcurl4-openssl-dev
-   ```
+This extension repo includes a Makefile target that builds upstream DGD with all flags Viking needs. No source patches or fork required.
 
-2. Build the extension:
-   ```bash
-   make
-   ```
+```bash
+# Clone upstream DGD (if not already present)
+git clone https://github.com/dworkin/dgd.git ~/code/dgd
 
-   This will create `viking_ext.dylib` (macOS) or `viking_ext.so` (Linux).
+# Build DGD with Viking flags
+cd ~/code/viking-dgd-extension
+make dgd
+```
 
-## Usage
+This runs `make` in the upstream DGD source with these defines:
 
-1. Add the extension to your DGD configuration file:
-   ```
-   modules = ([ "/path/to/viking_ext" : "" ]);
-   ```
+| Flag | Purpose |
+|------|---------|
+| `-DLARGENUM` | 64-bit LPC integers (default is 32-bit) |
+| `-DSLASHSLASH` | Allow `//` comments in LPC source |
+| `-DUINDEX_TYPE=uint32_t` | 4-byte object index (required by LARGENUM) |
+| `-DUINDEX_MAX=UINT32_MAX` | Max value for 4-byte object index |
 
-2. Use the kfuns in your LPC code:
-   ```lpc
-   /* Get system resource usage */
-   mixed *usage = rusage();
-   write("User CPU time: " + usage[0] + " seconds\n");
+The output binary is at `~/code/dgd/bin/dgd`. Set `DGD_SRC` to override the DGD source location:
 
-   /* Hash a password */
-   string hash = argon2_hash("mypassword", 3, 67108864);
-   
-   /* Verify a password */
-   if (argon2_verify("mypassword", hash)) {
-       write("Password correct!\n");
-   }
+```bash
+make dgd DGD_SRC=/path/to/dgd/src
+```
 
-   /* Make an HTTP request */
-   mapping response = http_request("https://api.example.com/data", "GET", ([ ]), "");
-   write("Status: " + response["status"] + "\n");
-   ```
+### 2. Build the extension
+
+```bash
+make extension
+```
+
+This creates `viking_ext.so` (Linux) or `viking_ext.dylib` (macOS).
+
+The extension **must** be compiled with `-DLARGENUM` to match DGD's 64-bit integer size. The Makefile handles this automatically.
+
+### 3. Install
+
+```bash
+cp ~/code/dgd/bin/dgd ~/viking-mud/bin/dgd
+cp viking_ext.so ~/viking-mud/bin/
+```
+
+Or use the install target:
+
+```bash
+make install INSTALL_DIR=~/viking-mud
+```
+
+### 4. Configure DGD
+
+Add the modules line to your DGD config file (e.g. `etc/config.viking`):
+
+```
+modules = ([ "/usr/local/viking/mud/bin/viking_ext.so" : "" ]);
+```
+
+### 5. Server file layout
+
+```
+/usr/local/viking/mud/
+├── bin/
+│   ├── dgd              # DGD binary (built with Viking flags)
+│   └── viking_ext.so    # Extension module
+├── etc/config.viking    # DGD config (references extension via modules)
+└── lib/                 # MUD library
+```
+
+## Docker Development
+
+The `viking-ansible` repo has Dockerfile and docker-compose.yml configured for local development. The extension source is mounted read-only into the container at `/home/drake/viking-ext`.
+
+To build the extension inside the container (avoids libsodium version mismatch):
+
+```bash
+docker exec viking-local bash -c 'cd /home/drake/viking-ext && make clean && make extension'
+docker exec viking-local bash -c 'cp /home/drake/viking-ext/viking_ext.so /usr/local/viking/mud/bin/'
+```
 
 ## Testing
 
-Run the test suite:
 ```bash
 # Set DGD binary path (or add dgd to your PATH)
 export DGD_BIN=/path/to/dgd
+
+# Build extension first
+make extension
 
 # Run tests
 ./run_tests.sh
 ```
 
-See [test/test_results.txt](test/test_results.txt) for example test output.
+Tests run a DGD instance with `test.dgd` config, execute LPC test scripts, and write results to `test/test_results.txt`.
 
 ## API Reference
 
 ### rusage()
-Returns an array with 14 elements containing system resource usage:
-- `[0]` - User CPU time (seconds)
-- `[1]` - User CPU time (microseconds)
-- `[2]` - System CPU time (seconds)
-- `[3]` - System CPU time (microseconds)
-- `[4]` - Maximum resident set size
-- `[5]` - Integral shared memory size
-- `[6]` - Integral unshared data size
-- `[7]` - Integral unshared stack size
-- `[8]` - Page reclaims (soft page faults)
-- `[9]` - Page faults (hard page faults)
-- `[10]` - Swaps
-- `[11]` - Block input operations
-- `[12]` - Block output operations
-- `[13]` - Voluntary context switches
-- `[14]` - Involuntary context switches
+
+Returns a 14-element `int*` array with system resource usage (values in milliseconds for CPU times):
+
+| Index | Field |
+|-------|-------|
+| `[0]` | User CPU time (ms) |
+| `[1]` | System CPU time (ms) |
+| `[2]` | Maximum resident set size (KB) |
+| `[3]` | Integral shared memory size |
+| `[4]` | Page reclaims (soft page faults) |
+| `[5]` | Page faults (hard page faults) |
+| `[6]` | Swaps |
+| `[7]` | Block input operations |
+| `[8]` | Block output operations |
+| `[9]` | Messages sent |
+| `[10]` | Messages received |
+| `[11]` | Signals received |
+| `[12]` | Voluntary context switches |
+| `[13]` | Involuntary context switches |
 
 ### argon2_hash(string password, int ops_limit, int mem_limit)
-Hashes a password using Argon2id.
+
+Hashes a password using Argon2id (via libsodium).
+
 - `password` - The password to hash
 - `ops_limit` - Operations limit (e.g., 3 for interactive, 4 for moderate)
 - `mem_limit` - Memory limit in bytes (e.g., 67108864 for 64MB)
 
-Returns a string containing the Argon2id hash.
+Returns a string containing the encoded Argon2id hash, or `nil` on failure.
 
 ### argon2_verify(string password, string hash)
+
 Verifies a password against an Argon2id hash.
+
 - `password` - The password to verify
-- `hash` - The Argon2id hash to verify against
+- `hash` - The encoded Argon2id hash string
 
-Returns 1 if the password matches, 0 otherwise.
-
-### http_request(string url, string method, mapping headers, string body)
-Makes an HTTP request.
-- `url` - The URL to request
-- `method` - HTTP method (GET, POST, PUT, DELETE, HEAD)
-- `headers` - Mapping of request headers
-- `body` - Request body (for POST/PUT)
-
-Returns a mapping with:
-- `status` - HTTP status code
-- `headers` - Response headers as a mapping
-- `body` - Response body as a string
+Returns `1` if the password matches, `0` otherwise.
 
 ## License
 

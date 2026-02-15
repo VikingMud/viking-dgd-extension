@@ -5,7 +5,6 @@
  */
 
 #include <sodium.h>
-#include <curl/curl.h>
 #include "viking_ext.h"
 
 /* Kfun prototypes */

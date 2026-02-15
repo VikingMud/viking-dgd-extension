@@ -24,4 +24,4 @@ array_size	= 16384;
 objects		= 262144;
 call_outs	= 16384;
 
-modules		= ([ "../viking_ext.dylib" : "" ]);
+modules		= ([ "../viking_ext.LIBEXT" : "" ]);
